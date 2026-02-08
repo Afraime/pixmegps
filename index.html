@@ -1,75 +1,34 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Global Live GPS Tracker</title>
-    
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-    
-    <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background: #f4f7f6; }
-        header { background: #2c3e50; color: white; padding: 1rem; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        #map { height: 70vh; width: 90%; margin: 20px auto; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-        .info { text-align: center; font-size: 1.2rem; color: #34495e; }
-        .coords { font-weight: bold; color: #e74c3c; }
-    </style>
+  <title>Bike Tracker</title>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 </head>
+
 <body>
-
-<header>
-    <h1>Global IoT Asset Tracker</h1>
-</header>
-
-<div class="info">
-    <p>Status: <span id="status">Connecting...</span></p>
-    <p>Lat: <span id="lat" class="coords">0.0</span> | Lng: <span id="lng" class="coords">0.0</span></p>
-</div>
-
-<div id="map"></div>
-
-<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  <h2>🏍 Bike Tracker</h2>
+  <p id="status">Waiting for data...</p>
 
 <script>
-    // 1. Paste your Firebase Config here from Firebase Console
-    const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
-        databaseURL: "https://your-project-id-default-rtdb.firebaseio.com",
-        projectId: "your-project-id",
-    };
-    
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
+  var firebaseConfig = {
+    apiKey: "AIzaSyDiSckMMD055k9cxend3oesbv2B2MBwOjI",
+    databaseURL: "https://bikegps-1ae85-default-rtdb.asia-southeast1.firebasedatabase.app"
+  };
 
-    // 2. Initialize Leaflet Map
-    var map = L.map('map').setView([0, 0], 2);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap'
-    }).addTo(map);
-    var marker = L.marker([0, 0]).addTo(map);
+  firebase.initializeApp(firebaseConfig);
+  var db = firebase.database();
 
-    // 3. Listen for Data from Firebase
-    database.ref('location').on('value', (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-            const lat = data.lat;
-            const lng = data.lng;
-            
-            // Update UI
-            document.getElementById('lat').innerText = lat.toFixed(6);
-            document.getElementById('lng').innerText = lng.toFixed(6);
-            document.getElementById('status').innerText = "Live";
-            document.getElementById('status').style.color = "green";
-
-            // Update Map
-            const newPos = [lat, lng];
-            marker.setLatLng(newPos);
-            map.setView(newPos, 15);
-        }
-    });
+  db.ref("bikeTracker").on("value", snapshot => {
+    let d = snapshot.val();
+    if (d) {
+      document.getElementById("status").innerHTML =
+        `Latitude: ${d.latitude}<br>
+         Longitude: ${d.longitude}<br>
+         Speed: ${d.speed}`;
+    }
+  });
 </script>
+
 </body>
 </html>
