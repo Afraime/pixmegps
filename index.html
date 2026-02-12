@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BikeLive Pro - Smart Security</title>
+  <title>BikeLive Pro | Google Maps Edition</title>
 
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
@@ -12,279 +12,232 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
 
   <style>
     :root {
-      --primary: #1a2980;
-      --accent: #26d0ce;
-      --danger: #ff4b2b;
-      --success: #00b09b;
-      --dark: #2c3e50;
-      --light: #f4f7f6;
+      --google-blue: #4285F4;
+      --primary: #1a237e;
+      --bg: #f0f2f5;
+      --card-bg: #ffffff;
     }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
 
-    body {
-      background-color: var(--light);
-      color: var(--dark);
-      transition: background 0.5s ease;
-    }
-
-    /* Security Alert Mode */
-    body.alert-mode {
-      background-color: #ffebee;
-      animation: pulse-bg 2s infinite;
-    }
-
-    @keyframes pulse-bg {
-      0% { background-color: #f4f7f6; }
-      50% { background-color: #ffcdd2; }
-      100% { background-color: #f4f7f6; }
-    }
+    body { background-color: var(--bg); color: #1c1e21; }
 
     header {
-      background: linear-gradient(135deg, var(--primary) 0%, #26d0ce 100%);
-      color: white;
-      padding: 1rem 2rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-
-    .nav-container {
-      max-width: 1200px;
-      margin: 0 auto;
+      background: white;
+      padding: 15px 25px;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
     }
 
-    .logo-box h1 { font-size: 1.5rem; letter-spacing: -1px; }
-    
-    .status-pill {
-      background: rgba(255,255,255,0.2);
-      padding: 6px 12px;
-      border-radius: 20px;
+    .brand { display: flex; align-items: center; gap: 10px; color: var(--primary); }
+    .brand h1 { font-size: 1.3rem; font-weight: 800; }
+
+    .status-badge {
+      padding: 6px 14px;
+      border-radius: 50px;
       font-size: 0.8rem;
+      font-weight: 600;
       display: flex;
       align-items: center;
       gap: 8px;
+      background: #eee;
     }
 
-    .dot { height: 8px; width: 8px; background-color: #bbb; border-radius: 50%; display: inline-block; }
-    .dot-online { background-color: #00ff00; box-shadow: 0 0 8px #00ff00; }
+    .status-online { background: #e8f5e9; color: #2e7d32; }
+    .pulse { height: 8px; width: 8px; border-radius: 50%; background: #2e7d32; animation: blink 1.5s infinite; }
 
-    .main-grid {
-      display: grid;
-      grid-template-columns: 1fr 350px;
-      gap: 20px;
-      max-width: 1200px;
+    @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+
+    .dashboard-container {
+      max-width: 1300px;
       margin: 20px auto;
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 20px;
       padding: 0 20px;
     }
 
-    @media (max-width: 900px) {
-      .main-grid { grid-template-columns: 1fr; }
-    }
+    #map { height: 600px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 4px solid white; }
 
-    /* Map Styling */
-    .card {
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-      overflow: hidden;
-      border: 1px solid rgba(0,0,0,0.05);
-    }
+    .panel { display: flex; flex-direction: column; gap: 20px; }
 
-    #map { height: 500px; width: 100%; z-index: 1; }
+    .card { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
 
-    /* Controls & Buttons */
-    .controls { padding: 20px; }
-    
-    .btn-google {
-      background: #4285F4;
+    .btn-gmaps {
+      background: var(--google-blue);
       color: white;
       text-decoration: none;
+      width: 100%;
+      padding: 16px;
+      border-radius: 14px;
+      font-weight: 700;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 10px;
-      padding: 14px;
-      border-radius: 12px;
-      font-weight: 600;
+      gap: 12px;
       border: none;
-      width: 100%;
       cursor: pointer;
-      transition: transform 0.2s, background 0.2s;
-      margin-bottom: 10px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3);
     }
 
-    .btn-google:hover { background: #3367d6; transform: translateY(-2px); }
+    .btn-gmaps:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(66, 133, 244, 0.4); }
 
-    .stats-card {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 15px;
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+    .stat-box { background: #f8f9fa; padding: 15px; border-radius: 15px; text-align: center; border: 1px solid #edf2f7; }
+    .stat-box i { font-size: 1.2rem; color: var(--google-blue); margin-bottom: 8px; }
+    .stat-val { font-size: 1.4rem; font-weight: 800; display: block; }
+    .stat-label { font-size: 0.7rem; color: #718096; text-transform: uppercase; letter-spacing: 1px; }
+
+    .coord-display {
       margin-top: 20px;
-    }
-
-    .stat-item {
-      background: #f8fafb;
+      background: #1a202c;
+      color: #a0aec0;
       padding: 15px;
       border-radius: 12px;
-      text-align: center;
+      font-family: monospace;
+      font-size: 0.8rem;
     }
 
-    .stat-item i { color: var(--primary); font-size: 1.2rem; margin-bottom: 5px; }
-    .stat-val { display: block; font-size: 1.2rem; font-weight: 700; color: var(--primary); }
-    .stat-label { font-size: 0.7rem; text-transform: uppercase; color: #7f8c8d; }
-
-    .console-log {
-      background: #2c3e50;
-      color: #00ff00;
-      font-family: 'Courier New', monospace;
-      padding: 15px;
-      font-size: 0.85rem;
-      border-radius: 12px;
-      margin-top: 20px;
-      max-height: 150px;
-      overflow-y: auto;
+    @media (max-width: 900px) {
+      .dashboard-container { grid-template-columns: 1fr; }
+      #map { height: 400px; }
     }
   </style>
 </head>
 <body>
 
 <header>
-  <div class="nav-container">
-    <div class="logo-box">
-      <h1><i class="fas fa-shield-alt"></i> BIKE<b>LIVE</b> PRO</h1>
-    </div>
-    <div class="status-pill">
-      <span id="status-dot" class="dot"></span>
-      <span id="status-text">Connecting...</span>
-    </div>
+  <div class="brand">
+    <i class="fas fa-map-marker-alt fa-lg"></i>
+    <h1>BIKE<span style="color:var(--google-blue)">LIVE</span></h1>
+  </div>
+  <div id="status-pill" class="status-badge">
+    <div id="dot"></div>
+    <span id="status-text">SYSTEM OFFLINE</span>
   </div>
 </header>
 
-<div class="main-grid">
-  <div class="card">
-    <div id="map"></div>
-  </div>
+<div class="dashboard-container">
+  <div id="map"></div>
 
-  <div class="sidebar">
-    <div class="card controls">
-      <button class="btn-google" onclick="openInGoogleMaps()">
+  <div class="panel">
+    <div class="card">
+      <button class="btn-gmaps" onclick="goToGoogleMaps()">
         <i class="fab fa-google"></i> OPEN IN GOOGLE MAPS
       </button>
 
-      <div class="stats-card">
-        <div class="stat-item">
-          <i class="fas fa-tachometer-alt"></i>
+      <div class="stats-grid">
+        <div class="stat-box">
+          <i class="fas fa-bolt"></i>
           <span class="stat-val" id="speed">0.0</span>
           <span class="stat-label">Speed km/h</span>
         </div>
-        <div class="stat-item">
-          <i class="fas fa-battery-three-quarters"></i>
+        <div class="stat-box">
+          <i class="fas fa-battery-full"></i>
           <span class="stat-val" id="battery">--</span>
           <span class="stat-label">Battery %</span>
         </div>
       </div>
 
-      <div class="console-log" id="console">
-        Waiting for GPS signal...
+      <div class="coord-display">
+        <div style="color: #48bb78;">> Tracking active</div>
+        <div id="lat-log">LAT: --</div>
+        <div id="lng-log">LNG: --</div>
+        <div id="last-time" style="margin-top:5px; font-size: 0.7rem;">Waiting...</div>
       </div>
-      
-      <p style="font-size: 0.7rem; color: #95a5a6; margin-top: 15px; text-align: center;">
-        <i class="fas fa-history"></i> Last update: <span id="time">N/A</span>
-      </p>
     </div>
   </div>
 </div>
 
 <script>
-  // --- CONFIGURATION ---
+  // --- FIREBASE CONFIG ---
   const firebaseConfig = {
-    apiKey: "AIzaSyDiSckMMD055k9cxend3oesbv2B2MBwOjI", // Ensure this is correct
+    apiKey: "AIzaSyDiSckMMD055k9cxend3oesbv2B2MBwOjI",
     databaseURL: "https://bikegps-1ae85-default-rtdb.asia-southeast1.firebasedatabase.app"
   };
 
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
 
-  // Variables
-  let bikeMarker, accuracyCircle;
-  let lat, lng;
+  // --- MAP SETUP (GOOGLE MAPS HYBRID) ---
   const map = L.map('map').setView([23.81, 90.41], 15);
 
-  // --- MAP SETUP ---
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; OpenStreetMap'
+  // This layer pulls actual Google Maps tiles
+  L.tileLayer('http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+    maxZoom: 20,
+    subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+    attribution: 'Map data ©2024 Google'
   }).addTo(map);
 
   const bikeIcon = L.divIcon({
-    html: `<div style="background: white; padding: 5px; border-radius: 50%; box-shadow: 0 2px 10px rgba(0,0,0,0.3);">
-            <i class="fas fa-motorcycle" style="color: #1a2980; font-size: 20px;"></i>
+    html: `<div style="background: var(--google-blue); padding: 8px; border-radius: 50%; border: 3px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+            <i class="fas fa-motorcycle" style="color: white; font-size: 18px;"></i>
            </div>`,
-    className: 'custom-bike-icon',
-    iconSize: [30, 30]
+    className: '',
+    iconSize: [40, 40],
+    iconAnchor: [20, 20]
   });
 
-  // --- LOGIC ---
-  function updateUI(data) {
+  let marker, circle;
+  let lat, lng;
+
+  // --- UPDATE LOGIC ---
+  function updateTracker(data) {
     lat = data.latitude;
     lng = data.longitude;
     const speed = data.speed || 0;
     const battery = data.battery || "--";
-    const timestamp = new Date().toLocaleTimeString();
+    const now = new Date().toLocaleTimeString();
 
-    // Update Text
+    // Update Text UI
     document.getElementById('speed').innerText = speed.toFixed(1);
     document.getElementById('battery').innerText = battery;
-    document.getElementById('time').innerText = timestamp;
-    document.getElementById('status-dot').className = "dot dot-online";
-    document.getElementById('status-text').innerText = "Live Tracking";
+    document.getElementById('lat-log').innerText = `LAT: ${lat.toFixed(6)}`;
+    document.getElementById('lng-log').innerText = `LNG: ${lng.toFixed(6)}`;
+    document.getElementById('last-time').innerText = `Last update: ${now}`;
     
-    const log = document.getElementById('console');
-    log.innerHTML = `> LAT: ${lat.toFixed(5)}<br>> LNG: ${lng.toFixed(5)}<br>> Update Received...`;
+    // Update Status Pill
+    document.getElementById('status-pill').classList.add('status-online');
+    document.getElementById('dot').classList.add('pulse');
+    document.getElementById('status-text').innerText = "LIVE TRACKING";
 
-    // Update Map
-    if (!bikeMarker) {
-      bikeMarker = L.marker([lat, lng], {icon: bikeIcon}).addTo(map);
-      accuracyCircle = L.circle([lat, lng], { radius: 50, color: '#26d0ce', fillOpacity: 0.1 }).addTo(map);
+    // Update Map Elements
+    const pos = [lat, lng];
+    if (!marker) {
+      marker = L.marker(pos, {icon: bikeIcon}).addTo(map);
+      circle = L.circle(pos, {radius: 40, color: '#4285F4', fillOpacity: 0.1}).addTo(map);
     } else {
-      bikeMarker.setLatLng([lat, lng]);
-      accuracyCircle.setLatLng([lat, lng]);
+      marker.setLatLng(pos);
+      circle.setLatLng(pos);
     }
     
-    map.panTo([lat, lng]);
-
-    // Simple Geofence Alert (Example: Change color if bike moves from starting point)
-    // if(speed > 5) document.body.classList.add('alert-mode');
-    // else document.body.classList.remove('alert-mode');
+    map.panTo(pos, {animate: true, duration: 1});
   }
 
-  function openInGoogleMaps() {
+  function goToGoogleMaps() {
     if (lat && lng) {
-      const url = `https://www.google.com/maps?q=${lat},${lng}`;
-      window.open(url, '_blank');
+      window.open(`https://www.google.com/maps?q=${lat},${lng}`, '_blank');
     } else {
-      alert("No GPS data available yet.");
+      alert("GPS Signal not found yet.");
     }
   }
 
   // --- FIREBASE LISTENER ---
-  db.ref("bikeTracker").on("value", (snapshot) => {
-    const data = snapshot.val();
-    if (data) {
-      updateUI(data);
+  db.ref("bikeTracker").on("value", (snap) => {
+    if (snap.exists()) {
+      updateTracker(snap.val());
     }
-  }, (error) => {
-    console.error(error);
-    document.getElementById('status-text').innerText = "Database Error";
   });
-
-  // Responsive Map resize
-  window.addEventListener('resize', () => map.invalidateSize());
 
 </script>
 </body>
