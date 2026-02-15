@@ -47,6 +47,7 @@
             max-width: 380px;
             text-align: center;
             border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
         }
 
         .login-logo { font-size: 1.8rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 35px; color: #ffffff; }
@@ -57,6 +58,7 @@
             border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.03);
             color: white; font-size: 1rem; outline: none;
         }
+        .login-card input:focus { border-color: var(--primary); }
 
         .login-card button {
             width: 100%; padding: 16px; margin-top: 10px; border-radius: 16px;
@@ -70,7 +72,7 @@
         #dashboard-ui { display: none; height: 100%; width: 100%; }
         #map { position: absolute; top: 0; bottom: 0; width: 100%; z-index: 1; }
 
-        /* HEADER & ICONS */
+        /* Header Bar */
         .header-bar {
             position: absolute; top: 15px; left: 10px; right: 10px; z-index: 10;
             display: flex; align-items: center; gap: 10px; pointer-events: none;
@@ -83,25 +85,21 @@
             pointer-events: auto; flex-grow: 1; justify-content: space-between;
         }
 
-        .nav-logo { font-weight: 800; font-size: 0.9rem; }
+        .nav-logo { font-weight: 800; font-size: 0.9rem; color: white; }
         .nav-logo span { color: var(--primary); }
 
-        .data-group { display: flex; gap: 12px; align-items: center; }
-        .data-pill { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 600; }
-        
-        /* New Animated / Colored Icons */
-        .fa-bolt-lightning { color: #FFD700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
-        .fa-gauge-high { color: #00D2FF; text-shadow: 0 0 10px rgba(0, 210, 255, 0.5); }
+        .data-group { display: flex; gap: 15px; align-items: center; }
+        .data-item { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 600; }
+        .data-item i { color: var(--primary); }
 
         .btn-gmaps {
             height: 48px; width: 48px; background: var(--primary); color: white;
             border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            border: 2.5px solid white; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            pointer-events: auto; text-decoration: none; transition: 0.3s;
+            border: 2px solid white; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            pointer-events: auto; text-decoration: none;
         }
-        .btn-gmaps:active { transform: scale(0.9); }
 
-        /* BOTTOM PANEL */
+        /* Bottom Panel */
         .bottom-panel {
             position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%);
             z-index: 10; width: 92%; max-width: 400px;
@@ -121,10 +119,9 @@
         input:checked + .slider:before { transform: translateX(25px); }
 
         #moving-overlay {
-            position: absolute; top: 80px; left: 50%; transform: translateX(-50%);
-            background: var(--danger); color: white; padding: 6px 14px;
-            border-radius: 8px; font-size: 0.75rem; font-weight: 800; display: none; z-index: 5;
-            box-shadow: 0 0 15px var(--danger);
+            position: absolute; top: 75px; left: 50%; transform: translateX(-50%);
+            background: var(--danger); color: white; padding: 5px 15px;
+            border-radius: 8px; font-size: 0.7rem; font-weight: 800; display: none; z-index: 5;
         }
     </style>
 </head>
@@ -144,36 +141,36 @@
 
     <div id="dashboard-ui">
         <div id="map"></div>
-        <div id="moving-overlay"><i class="fas fa-triangle-exclamation"></i> MOTION DETECTED</div>
+        <div id="moving-overlay">MOTION DETECTED</div>
 
         <div class="header-bar">
             <div class="glass-pill">
                 <div class="nav-logo">PIXME<span>GPS</span></div>
                 
                 <div class="data-group">
-                    <div class="data-pill">
-                        <i class="fas fa-bolt-lightning"></i>
+                    <div class="data-item">
+                        <i class="fas fa-battery-three-quarters"></i>
                         <span id="bat-txt">--</span>%
                     </div>
-                    <div class="data-pill">
-                        <i class="fas fa-gauge-high"></i>
+                    <div class="data-item">
+                        <i class="fas fa-tachometer-alt"></i>
                         <span id="spd-txt">0</span>
                     </div>
                 </div>
 
-                <i class="fas fa-power-off" onclick="logout()" style="cursor:pointer; color:#94a3b8; font-size: 1rem;"></i>
+                <i class="fas fa-sign-out-alt" onclick="logout()" style="cursor:pointer; color:#94a3b8"></i>
             </div>
             
             <a href="#" id="gmap-btn" target="_blank" class="btn-gmaps">
-                <i class="fas fa-map-location-dot" style="font-size: 1.2rem;"></i>
+                <i class="fab fa-google"></i>
             </a>
         </div>
 
         <div class="bottom-panel">
             <div class="arm-card">
                 <div>
-                    <div style="font-size:0.65rem; color:#94a3b8; letter-spacing: 1px; font-weight: 800;">PROTECTION</div>
-                    <div id="arm-label" style="font-weight:800; font-size: 1.1rem;">DISARMED</div>
+                    <div style="font-size:0.7rem; color:#94a3b8; font-weight: 800;">SECURITY MODE</div>
+                    <div id="arm-label" style="font-weight:800;">DISARMED</div>
                 </div>
                 <label class="switch">
                     <input type="checkbox" id="arm-toggle" onchange="updateArm()">
@@ -184,7 +181,6 @@
     </div>
 
     <script>
-        // --- 1. FIREBASE INITIALIZATION ---
         const firebaseConfig = {
             apiKey: "AIzaSyDiSckMMD055k9cxend3oesbv2B2MBwOjI",
             databaseURL: "https://bikegps-1ae85-default-rtdb.asia-southeast1.firebasedatabase.app"
@@ -193,21 +189,20 @@
         const auth = firebase.auth();
         const db = firebase.database();
 
-        // --- 2. AUTHENTICATION LOGIC ---
         function login() {
             const e = document.getElementById('email').value;
             const p = document.getElementById('password').value;
             auth.signInWithEmailAndPassword(e, p).catch(err => {
-                document.getElementById('error-msg').innerText = "Incorrect credentials.";
+                document.getElementById('error-msg').innerText = "Incorrect login.";
             });
         }
 
         function forgotPassword() {
             const e = document.getElementById('email').value;
-            if(!e) { document.getElementById('error-msg').innerText = "Email required."; return; }
+            if(!e) { document.getElementById('error-msg').innerText = "Enter email first."; return; }
             auth.sendPasswordResetEmail(e).then(() => {
                 document.getElementById('success-msg').innerText = "Email sent!";
-            }).catch(err => { document.getElementById('error-msg').innerText = "User not found."; });
+            }).catch(err => { document.getElementById('error-msg').innerText = "Email not found."; });
         }
 
         function logout() { auth.signOut().then(() => location.reload()); }
@@ -223,21 +218,16 @@
             }
         });
 
-        // --- 3. DASHBOARD LOGIC ---
         function initDashboard() {
             const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([23.81, 90.41], 17);
             L.tileLayer('http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', { subdomains: ['mt0','mt1','mt2','mt3'] }).addTo(map);
-            
-            // Marker using circle with a pulse feel
-            const marker = L.circleMarker([23.81, 90.41], { 
-                radius: 10, color: '#fff', weight: 3, opacity: 1, fillOpacity: 1, fillColor: '#4285F4' 
-            }).addTo(map);
+            const marker = L.circleMarker([23.81, 90.41], { radius: 9, color: '#fff', weight: 3, opacity: 1, fillOpacity: 1, fillColor: '#4285F4' }).addTo(map);
 
             db.ref("bikeTracker").on("value", snap => {
                 const data = snap.val();
                 if(!data) return;
 
-                if(data.latitude && data.longitude) {
+                if(data.latitude) {
                     marker.setLatLng([data.latitude, data.longitude]);
                     map.panTo([data.latitude, data.longitude]);
                     document.getElementById('gmap-btn').href = `https://www.google.com/maps?q=${data.latitude},${data.longitude}`;
@@ -246,10 +236,9 @@
                 document.getElementById('bat-txt').innerText = data.battery || 0;
                 document.getElementById('spd-txt').innerText = Math.round(data.speed || 0);
                 document.getElementById('moving-overlay').style.display = (data.speed > 2) ? "block" : "none";
-                
                 document.getElementById('arm-toggle').checked = data.isLocked;
                 const lbl = document.getElementById('arm-label');
-                lbl.innerText = data.isLocked ? "ARMED" : "DISARMED";
+                lbl.innerText = data.isLocked ? "SYSTEM ARMED" : "DISARMED";
                 lbl.style.color = data.isLocked ? "#2ed573" : "#fff";
             });
         }
